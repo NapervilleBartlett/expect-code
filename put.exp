@@ -1,0 +1,53 @@
+#!/usr/bin/expect
+
+
+# Syntx:  put.exp   RemoteMachine   TarFile 
+# Syntx:  put.exp   lteenbpc055    eNB_Log_Analysis.tar 
+
+
+
+set timeout 500
+
+
+set ip    [lindex $argv 0]
+set File [lindex $argv 1]
+
+
+# Ftp the file to the target machine
+spawn ftp $ip
+expect "Name"
+send   "lteadm\r"
+
+expect "Password:"
+send   "lteadm\r"
+
+expect "ftp>"
+send   "cd /test/log/sfe/logs\r"
+
+expect "ftp>"
+send   "prompt\r"
+
+expect "ftp>"
+send   "mput $File\r"
+
+expect "ftp>"
+send   "bye\r"
+
+expect "Goodbye"
+
+
+# telnet to the target machine and untar the file 
+
+spawn  telnet  $ip
+expect "login:"
+send   "lteadm\r"
+expect "Password"
+send   "lteadm\r"
+
+expect "lteadm@"
+send   "cd /test/log/sfe/logs; tar -xvf $File; echo DONE\r"
+expect "DONE"
+
+send "exit\r"
+expect "Connection closed"
+

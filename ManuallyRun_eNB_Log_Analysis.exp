@@ -1,0 +1,38 @@
+#!/usr/bin/expect
+
+
+# Syntx:  ./ManuallyRun_eNB_Log_Analysis.exp   RemoteMachine   FileToBeRun   parameters  
+# Syntx:  ./ManuallyRun_eNB_Log_Analysis.exp   lteenbpc055     ParsePm.sh    date 
+
+
+
+set timeout 300
+
+
+set ip    [lindex $argv 0]
+set cmd   [lindex $argv 1]
+set para1 [lindex $argv 2]
+set para2 [lindex $argv 3]
+set para3 [lindex $argv 4]
+
+
+
+
+
+
+
+# telnet to the target machine and untar the file 
+
+spawn  telnet  $ip
+expect "login:"
+send   "lteadm\r"
+expect "Password"
+send   "lteadm\r"
+
+expect "lteadm@"
+send   "cd /test/log/sfe/logs; ./$cmd  $para1  $para2 $para3; echo DONE\r"
+expect "DONE"
+
+send "exit\r"
+expect "Connection closed"
+
