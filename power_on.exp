@@ -1,0 +1,49 @@
+#!/usr/bin/expect
+
+# ltespiderpc002 <-- eth3 --> Power_Strip
+# Power_Strip Assigned IP = 192.168.168.168
+# eth3 is assigned     IP = 192.168.168.167
+#
+#
+# Troubleshooting
+# 1. DO ifconfig, verifyt eth3 is up and assigned IP=192.168.168.168.
+#    If no, do the cmds delow
+#       ifconfig eth3 192.168.168.167
+#       ifconfig eth3 down
+#       ifconfig eth3 up
+
+
+
+
+if { [llength $argv] != 2} {
+        send_user "usage : cat.exp <cat_name> <blackbox port> \n"
+        exit 1
+}
+set timeout 60
+set  BBip [lindex $argv 0 ]
+set  BBport [lindex $argv 1 ]
+
+spawn telnet $BBip
+#expect "assword:"
+#send "lteadm\r"
+
+expect_before {
+	eof { exit }
+	timeout { exit }
+}
+
+
+expect "RPM"
+send "/On $BBport,y\r\r"
+expect "RPM"
+sleep 1
+send "/X,y\r"
+expect {
+	"Enter Selection" { send "2\r";
+			   close	
+			 }
+	"lteadm\@" { close }	
+	timeout { close }
+	}
+#close
+#exit

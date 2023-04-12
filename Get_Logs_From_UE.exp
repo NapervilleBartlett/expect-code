@@ -1,0 +1,119 @@
+#!/usr/bin/expect
+
+#Gets all files from the source directorty into a target directory
+
+
+# Syntx:  Get_Logs_From_UE.exp   Access_Laptop_IP   src_Directory			Destination_directory
+# Syntx:  Get_Logs_From_UE.exp   10.6.155.163       MUTT_Software\MQ\2012_07_19\*	Logs/2012_07_19/UE_7/
+
+
+
+set timeout 180
+
+
+set Access_Laptop_IP   	[lindex $argv 0]
+set SRC_DIR   		[lindex $argv 1]
+set DEST_DIR     	[lindex $argv 2]
+
+
+puts "----------------------------------------------------------------------------------------------------------------------"
+puts "     "
+puts "-------------------  Get_Logs_From_UE.exp:: DEST_DIR=$DEST_DIR=   Access_Laptop_IP=$Access_Laptop_IP=  SRC_DIR=$SRC_DIR=  "
+puts "     "
+puts "----------------------------------------------------------------------------------------------------------------------"
+
+
+
+
+set StartDate   	[timestamp -format "%Y_%m_%d"]
+puts $StartDate
+log_file /tmp/Get_Logs_From_UE.exp_$StartDate
+
+
+set Hr                  [timestamp -format "%H"]
+puts $Hr
+
+
+
+
+# Create the LOGS File and do a 7777 on it 
+spawn $env(SHELL)
+send   "chmod 777 /tmp/Get*; sleep 1; pwd\r"
+expect "tmp"
+
+send -- "exit\r"
+expect eof
+
+
+
+
+
+
+
+# Ftp the file to the target machine
+spawn ftp $Access_Laptop_IP
+expect "Name"
+send   "lteadm\r"
+
+expect "Password:"
+send   "lteadm\r"
+
+expect "ftp>"
+send   "lcd $DEST_DIR\r"
+
+expect "ftp>"
+send   "prompt\r"
+
+
+expect "ftp>"
+send   "bin\r"
+
+
+expect "ftp>"
+send   "cd $SRC_DIR \r"
+
+expect {
+        -re {.*directory not foun.*} 	{ puts "-------------  Big trouble  ------------"; exit }
+        -re {ftp>} 			{}
+	timeout         		{ exit   }
+}
+
+
+send   "mget * \r"
+expect "ftp>"
+
+
+
+
+send   "cd /SYSLOG \r"
+
+expect {
+        -re {.*directory not foun.*}    { puts "-------------  Big trouble  ------------"; exit }
+        -re {ftp>}                      {}
+        timeout                         { exit   }
+}
+
+
+send   "get syslog.txt.txt syslog.txt.txt_${Hr} \r"
+expect "ftp>"
+
+
+send   "mget VPN*\r"
+expect "ftp>"
+
+
+
+send   "mdelete VPN*\r"
+expect "ftp>"
+
+
+
+
+
+send   "quit\r"
+
+expect "Goodbye"
+send -- "exit\r"
+
+expect eof
+
